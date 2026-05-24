@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Akıllı Zikirmatik</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%230a0f0d' stroke='%23c9a84c' stroke-width='5'/><text x='50' y='65' font-size='40' text-anchor='middle' fill='%23c9a84c' font-family='serif'>ذ</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0f0d; --surface:#111a14; --card:#162018;
+  --gold:#c9a84c; --gold-light:#e8c96a; --gold-dim:#7a6028;
+  --green:#2d6a4f; --green-light:#52b788;
+  --text:#e8dfc8; --text-dim:#8a7f6a;
+  --glow:rgba(201,168,76,0.25);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;position:relative;}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle at 20% 20%,rgba(201,168,76,0.04) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(45,106,79,0.06) 0%,transparent 50%);pointer-events:none;}
+.geometric-bg{position:fixed;inset:0;pointer-events:none;overflow:hidden;opacity:0.03;}
+.geometric-bg svg{width:100%;height:100%;}
+.app{width:100%;max-width:420px;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 20px 36px;position:relative;z-index:1;}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:12px;width:100%;position:relative;}
+.bismillah{font-family:'Amiri',serif;font-size:21px;color:var(--gold);letter-spacing:2px;margin-bottom:3px;opacity:0.9;}
+.title{font-size:11px;color:var(--text-dim);letter-spacing:4px;text-transform:uppercase;font-weight:300;}
+.wake-badge{position:absolute;top:0;right:0;font-size:10px;padding:3px 8px;border-radius:10px;background:rgba(82,183,136,0.15);border:1px solid rgba(82,183,136,0.3);color:var(--green-light);display:none;align-items:center;gap:4px;}
+.wake-badge.on{display:flex;}
+.wake-dot{width:5px;height:5px;border-radius:50%;background:var(--green-light);animation:blink 1.5s infinite;}
+
+/* LANG */
+.lang-row{display:flex;gap:6px;justify-content:center;margin-bottom:12px;}
+.lang-btn{padding:5px 13px;border-radius:16px;font-size:12px;font-weight:500;background:var(--card);border:1px solid rgba(255,255,255,0.08);color:var(--text-dim);cursor:pointer;transition:all 0.2s;letter-spacing:1px;}
+.lang-btn.active{background:rgba(201,168,76,0.15);border-color:var(--gold-dim);color:var(--gold);}
+
+/* ZIKIR SELECTOR */
+.zikir-selector{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;width:100%;}
+.zikir-btn{background:var(--card);border:1px solid rgba(201,168,76,0.15);color:var(--text-dim);padding:6px 13px;border-radius:20px;font-family:'Amiri',serif;font-size:14px;cursor:pointer;transition:all 0.2s;white-space:nowrap;position:relative;}
+.zikir-btn.active{background:linear-gradient(135deg,rgba(201,168,76,0.2),rgba(201,168,76,0.08));border-color:var(--gold);color:var(--gold-light);box-shadow:0 0 12px var(--glow);}
+.zikir-btn.custom-item{padding-right:28px;}
+.zikir-btn .del-x{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-dim);opacity:0.6;line-height:1;padding:2px;cursor:pointer;}
+.zikir-btn .del-x:hover{opacity:1;color:#e74c3c;}
+.add-zikir-btn{background:transparent;border:1px dashed rgba(201,168,76,0.25);color:var(--gold-dim);padding:6px 13px;border-radius:20px;font-size:17px;cursor:pointer;transition:all 0.2s;line-height:1;}
+.add-zikir-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+/* TARGET */
+.target-row{display:flex;gap:6px;justify-content:center;margin-bottom:12px;width:100%;}
+.target-chip{flex:1;padding:7px 4px;background:var(--card);border:1px solid rgba(201,168,76,0.1);border-radius:10px;color:var(--text-dim);font-family:'Tajawal',sans-serif;font-size:12px;cursor:pointer;text-align:center;transition:all 0.2s;}
+.target-chip.active{border-color:var(--gold-dim);color:var(--gold);background:rgba(201,168,76,0.08);}
+
+/* COUNTER */
+.counter-display{width:200px;height:200px;position:relative;margin-bottom:12px;}
+.counter-ring{width:100%;height:100%;border-radius:50%;background:var(--card);border:2px solid rgba(201,168,76,0.15);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;transition:box-shadow 0.3s;}
+.counter-ring::before{content:'';position:absolute;inset:-1px;border-radius:50%;background:conic-gradient(var(--gold) calc(var(--progress)*1%),transparent 0);padding:2px;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0.7;}
+.counter-ring.pulse{animation:ring-pulse 0.3s ease-out;}
+@keyframes ring-pulse{0%{box-shadow:0 0 0 0 rgba(201,168,76,0.5);}100%{box-shadow:0 0 0 24px rgba(201,168,76,0);}}
+.count-number{font-family:'Amiri',serif;font-size:62px;line-height:1;color:var(--gold-light);font-weight:700;letter-spacing:-2px;}
+.count-number.bump{animation:bump 0.15s ease-out;}
+@keyframes bump{0%{transform:scale(1);}50%{transform:scale(1.12);}100%{transform:scale(1);}}
+.count-label{font-family:'Amiri',serif;font-size:14px;color:var(--text-dim);margin-top:3px;text-align:center;max-width:155px;word-break:break-word;}
+.round-info{font-size:11px;color:var(--gold-dim);margin-top:2px;letter-spacing:1px;}
+
+/* COMPLETION BURST */
+.burst-container{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden;}
+.burst-particle{position:absolute;font-size:22px;animation:burst-fly 1.2s ease-out forwards;pointer-events:none;}
+@keyframes burst-fly{0%{transform:translate(-50%,-50%) scale(0);opacity:1;}70%{opacity:1;}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(0.5) rotate(var(--rot));opacity:0;}}
+
+/* RHYTHM DOTS */
+.rhythm-dots{display:flex;gap:5px;justify-content:center;margin-bottom:12px;height:22px;align-items:flex-end;}
+.r-dot{width:6px;background:var(--gold-dim);border-radius:3px;transition:height 0.3s,background 0.3s;}
+
+/* STATUS */
+.status-bar{width:100%;background:var(--card);border:1px solid rgba(201,168,76,0.1);border-radius:12px;padding:9px 13px;margin-bottom:12px;min-height:44px;display:flex;align-items:center;gap:10px;}
+.status-icon{width:8px;height:8px;border-radius:50%;background:var(--text-dim);flex-shrink:0;transition:all 0.3s;}
+.status-icon.learning{background:#f4a261;animation:blink 1s infinite;}
+.status-icon.auto{background:var(--green-light);animation:blink 0.7s infinite;}
+.status-icon.ready{background:var(--gold);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.status-text{font-size:12px;color:var(--text-dim);line-height:1.4;}
+.status-text strong{color:var(--text);display:block;font-size:13px;margin-bottom:1px;}
+
+/* AUTO CONTROLS */
+.auto-controls{width:100%;background:rgba(45,106,79,0.1);border:1px solid rgba(82,183,136,0.2);border-radius:13px;padding:12px;margin-bottom:12px;display:none;}
+.auto-controls.visible{display:block;}
+.auto-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.auto-label{font-size:13px;color:var(--green-light);font-weight:500;}
+.speed-control{display:flex;align-items:center;gap:7px;}
+.speed-btn{width:26px;height:26px;border-radius:7px;background:rgba(82,183,136,0.15);border:1px solid rgba(82,183,136,0.3);color:var(--green-light);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.speed-btn:active{transform:scale(0.92);background:rgba(82,183,136,0.3);}
+.speed-display{font-size:13px;color:var(--text);min-width:46px;text-align:center;}
+.auto-toggle{width:100%;padding:10px;background:rgba(82,183,136,0.15);border:1px solid rgba(82,183,136,0.3);border-radius:10px;color:var(--green-light);font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s;}
+.auto-toggle.active{background:rgba(82,183,136,0.3);border-color:var(--green-light);}
+
+/* SOUND SELECTOR */
+.sound-selector{display:flex;gap:6px;width:100%;margin-bottom:12px;}
+.sound-chip{flex:1;padding:7px 4px;background:var(--card);border:1px solid rgba(255,255,255,0.07);border-radius:10px;color:var(--text-dim);font-size:11px;cursor:pointer;text-align:center;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.sound-chip .sicon{font-size:15px;}
+.sound-chip.active{border-color:var(--gold-dim);color:var(--gold);background:rgba(201,168,76,0.08);}
+
+/* TAP BTN */
+.tap-area{width:100%;margin-bottom:12px;}
+.tap-btn{width:100%;padding:22px;background:linear-gradient(145deg,#1a2a1e,#0f1a12);border:1.5px solid rgba(201,168,76,0.25);border-radius:20px;color:var(--gold-light);font-family:'Amiri',serif;font-size:25px;cursor:pointer;position:relative;overflow:hidden;transition:all 0.15s;user-select:none;-webkit-user-select:none;letter-spacing:2px;}
+.tap-btn::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--x,50%) var(--y,50%),rgba(201,168,76,0.2) 0%,transparent 60%);opacity:0;transition:opacity 0.3s;}
+.tap-btn:active{transform:scale(0.97);border-color:var(--gold);box-shadow:0 0 30px rgba(201,168,76,0.15);}
+.tap-btn:active::after{opacity:1;transition:opacity 0s;}
+.tap-hint{display:block;font-family:'Tajawal',sans-serif;font-size:10px;color:var(--text-dim);margin-top:4px;letter-spacing:2px;}
+
+/* BOTTOM ROW */
+.bottom-row{display:flex;gap:9px;width:100%;}
+.ctrl-btn{flex:1;padding:11px 6px;background:var(--card);border:1px solid rgba(255,255,255,0.07);border-radius:12px;color:var(--text-dim);font-family:'Tajawal',sans-serif;font-size:11px;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.ctrl-btn:active{transform:scale(0.95);}
+.ctrl-btn .icon{font-size:17px;}
+.ctrl-btn.reset{border-color:rgba(231,76,60,0.2);}
+.ctrl-btn.reset:active{background:rgba(231,76,60,0.1);color:#e74c3c;}
+.ctrl-btn.wake-btn.on{border-color:rgba(82,183,136,0.3);color:var(--green-light);}
+
+/* STATS */
+.stats-row{display:flex;gap:9px;width:100%;margin-top:12px;}
+.stat-card{flex:1;background:var(--card);border:1px solid rgba(201,168,76,0.08);border-radius:12px;padding:9px;text-align:center;}
+.stat-val{font-family:'Amiri',serif;font-size:19px;color:var(--gold);display:block;}
+.stat-lbl{font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+
+/* DAILY STAT */
+.daily-card{width:100%;background:var(--card);border:1px solid rgba(201,168,76,0.08);border-radius:12px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;}
+.daily-left{font-size:12px;color:var(--text-dim);}
+.daily-left strong{display:block;font-size:13px;color:var(--text);margin-bottom:1px;}
+.daily-num{font-family:'Amiri',serif;font-size:26px;color:var(--gold);}
+
+/* SIGNATURE */
+.signature{margin-top:24px;text-align:center;font-size:10px;color:rgba(138,127,106,0.3);letter-spacing:2px;font-weight:300;font-family:'Tajawal',sans-serif;user-select:none;}
+.signature span{border-top:1px solid rgba(201,168,76,0.07);padding-top:7px;display:inline-block;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#1a2a1e;border:1px solid rgba(201,168,76,0.25);border-radius:20px;padding:22px 18px;width:calc(100% - 40px);max-width:380px;transform:translateY(20px);transition:transform 0.3s;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-title{font-family:'Amiri',serif;font-size:17px;color:var(--gold);margin-bottom:14px;text-align:center;}
+.modal-input{width:100%;padding:11px 14px;background:var(--bg);border:1px solid rgba(201,168,76,0.2);border-radius:12px;color:var(--text);font-family:'Amiri',serif;font-size:19px;text-align:center;letter-spacing:1px;margin-bottom:12px;outline:none;direction:rtl;}
+.modal-input:focus{border-color:var(--gold);}
+.modal-input::placeholder{color:var(--text-dim);font-size:14px;}
+.modal-hint{font-size:11px;color:var(--text-dim);text-align:center;margin-bottom:14px;}
+.modal-btns{display:flex;gap:9px;}
+.modal-btn{flex:1;padding:11px;border-radius:11px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:500;transition:all 0.2s;}
+.modal-btn.cancel{background:var(--card);border:1px solid rgba(255,255,255,0.08);color:var(--text-dim);}
+.modal-btn.confirm{background:linear-gradient(135deg,rgba(201,168,76,0.3),rgba(201,168,76,0.15));border:1px solid var(--gold-dim);color:var(--gold-light);}
+.modal-btn.confirm:active{transform:scale(0.97);}
+
+/* TOAST */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);background:linear-gradient(135deg,rgba(201,168,76,0.95),rgba(232,201,106,0.95));color:#0a0f0d;padding:10px 22px;border-radius:24px;font-family:'Amiri',serif;font-size:15px;font-weight:700;letter-spacing:1px;z-index:300;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="geometric-bg">
+  <svg viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+    <defs><pattern id="geo" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+      <polygon points="40,5 75,25 75,55 40,75 5,55 5,25" fill="none" stroke="#c9a84c" stroke-width="0.5"/>
+      <line x1="40" y1="5" x2="40" y2="75" stroke="#c9a84c" stroke-width="0.3"/>
+      <line x1="5" y1="25" x2="75" y2="55" stroke="#c9a84c" stroke-width="0.3"/>
+      <line x1="75" y1="25" x2="5" y2="55" stroke="#c9a84c" stroke-width="0.3"/>
+    </pattern></defs>
+    <rect width="400" height="800" fill="url(#geo)"/>
+  </svg>
+</div>
+<div class="burst-container" id="burstContainer"></div>
+
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+    <div class="title" id="appTitle">Akıllı Zikirmatik</div>
+    <div class="wake-badge" id="wakeBadge"><span class="wake-dot"></span><span id="wakeText">Ekran Açık</span></div>
+  </div>
+
+  <!-- Lang -->
+  <div class="lang-row">
+    <button class="lang-btn active" onclick="setLang('tr',this)">TR</button>
+    <button class="lang-btn" onclick="setLang('ar',this)">AR</button>
+    <button class="lang-btn" onclick="setLang('en',this)">EN</button>
+  </div>
+
+  <!-- Zikir selector -->
+  <div class="zikir-selector" id="zikirSelector"></div>
+
+  <!-- Target -->
+  <div class="target-row">
+    <button class="target-chip" onclick="setTarget(this,33)">33</button>
+    <button class="target-chip active" onclick="setTarget(this,99)">99</button>
+    <button class="target-chip" onclick="setTarget(this,100)">100</button>
+    <button class="target-chip" onclick="setTarget(this,500)">500</button>
+    <button class="target-chip" onclick="setTarget(this,1000)">1000</button>
+  </div>
+
+  <!-- Counter -->
+  <div class="counter-display">
+    <div class="counter-ring" id="ring" style="--progress:0">
+      <div class="count-number" id="countNum">0</div>
+      <div class="count-label" id="zikirLabel">الله</div>
+      <div class="round-info" id="roundInfo"></div>
+    </div>
+  </div>
+
+  <!-- Rhythm dots -->
+  <div class="rhythm-dots" id="rhythmDots">
+    <div class="r-dot" style="height:4px"></div><div class="r-dot" style="height:4px"></div>
+    <div class="r-dot" style="height:4px"></div><div class="r-dot" style="height:4px"></div>
+    <div class="r-dot" style="height:4px"></div><div class="r-dot" style="height:4px"></div>
+    <div class="r-dot" style="height:4px"></div><div class="r-dot" style="height:4px"></div>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar">
+    <div class="status-icon" id="statusIcon"></div>
+    <div class="status-text" id="statusText"></div>
+  </div>
+
+  <!-- Auto controls -->
+  <div class="auto-controls" id="autoControls">
+    <div class="auto-header">
+      <div class="auto-label" id="autoLabel">⚡ Otomatik Mod</div>
+      <div class="speed-control">
+        <button class="speed-btn" onclick="changeSpeed(-0.1)">−</button>
+        <div class="speed-display" id="speedDisplay">1.0×</div>
+        <button class="speed-btn" onclick="changeSpeed(0.1)">+</button>
+      </div>
+    </div>
+    <button class="auto-toggle" id="autoToggle" onclick="toggleAuto()"></button>
+  </div>
+
+  <!-- Sound selector -->
+  <div class="sound-selector">
+    <button class="sound-chip active" onclick="setSound(this,'soft')" data-sound="soft">
+      <span class="sicon">🎵</span><span id="sLbl0">Yumuşak</span>
+    </button>
+    <button class="sound-chip" onclick="setSound(this,'wood')" data-sound="wood">
+      <span class="sicon">🪵</span><span id="sLbl1">Ahşap</span>
+    </button>
+    <button class="sound-chip" onclick="setSound(this,'silent')" data-sound="silent">
+      <span class="sicon">🤫</span><span id="sLbl2">Sessiz</span>
+    </button>
+  </div>
+
+  <!-- Tap button -->
+  <div class="tap-area">
+    <button class="tap-btn" id="tapBtn" onclick="handleTap(event)">
+      <span id="tapBtnText">ذكر</span>
+      <span class="tap-hint" id="tapHint">DOKUN / ZİKREDİYORUM</span>
+    </button>
+  </div>
+
+  <!-- Bottom controls -->
+  <div class="bottom-row">
+    <button class="ctrl-btn" onclick="undoTap()">
+      <span class="icon">↩</span><span id="lblUndo">Geri Al</span>
+    </button>
+    <button class="ctrl-btn wake-btn" id="wakeBtn" onclick="toggleWakeLock()">
+      <span class="icon">💡</span><span id="lblWake">Ekran Açık</span>
+    </button>
+    <button class="ctrl-btn" onclick="toggleVibration()">
+      <span class="icon" id="vibIcon">📳</span><span id="lblVib">Titreşim</span>
+    </button>
+    <button class="ctrl-btn reset" onclick="resetCounter()">
+      <span class="icon">↺</span><span id="lblReset">Sıfırla</span>
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-val" id="totalStat">0</span>
+      <span class="stat-lbl" id="lblTotal">Toplam</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-val" id="rhythmStat">—</span>
+      <span class="stat-lbl" id="lblRhythm">Ort. Ritim</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-val" id="roundStat">1</span>
+      <span class="stat-lbl" id="lblRound">Tur</span>
+    </div>
+  </div>
+
+  <!-- Daily stat -->
+  <div class="daily-card">
+    <div class="daily-left">
+      <strong id="lblDailyTitle">Bugünkü Toplam</strong>
+      <span id="lblDailySub">Gün sıfırlanınca temizlenir</span>
+    </div>
+    <div class="daily-num" id="dailyNum">0</div>
+  </div>
+
+  <div class="signature"><span>developed by Halil İbrahim Yılmaz</span></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Yeni Zikir Ekle</div>
+    <input class="modal-input" id="modalInput" type="text" placeholder="مثلاً: يا رحمن" maxlength="60">
+    <div class="modal-hint" id="modalHint">Arapça, Türkçe veya istediğiniz dilde yazabilirsiniz</div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" id="modalCancel" onclick="closeModalDirect()">İptal</button>
+      <button class="modal-btn confirm" id="modalConfirm" onclick="addCustomZikir()">Ekle</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── TRANSLATIONS ──────────────────────────────────────
+const T = {
+  tr:{
+    appTitle:'Akıllı Zikirmatik',tapHint:'DOKUN / ZİKREDİYORUM',
+    autoLabel:'⚡ Otomatik Mod',autoStart:'▶ Otomatik Saymayı Başlat',autoStop:'⏸ Otomatik Saymayı Durdur',
+    undo:'Geri Al',wake:'Ekran Açık',vibOn:'Titreşim ✓',vibOff:'Titreşim',reset:'Sıfırla',
+    total:'Toplam',rhythm:'Ort. Ritim',round:'Tur',
+    soundLabels:['Yumuşak','Ahşap','Sessiz'],
+    statusReady:'Hazır',statusReadyDesc:'Zikre başlamak için butona bas',
+    statusLearning:'🧠 Ritim Öğreniliyor...',statusLearningDesc:n=>`${n} dokunuş daha — ritmin hesaplanıyor`,
+    statusReady2:'✓ Ritim Öğrenildi',statusReady2Desc:s=>`Ort. ${s}s — Otomatik modu açabilirsin`,
+    statusAuto:'⚡ Otomatik Sayıyor',statusAutoDesc:s=>`Her ${s}s bir zikir — Manuel de ekleyebilirsin`,
+    toastComplete:'مَاشَاءَ الله — Tur Tamamlandı! 🌙',
+    modalTitle:'Yeni Zikir Ekle',modalHint:'Arapça, Türkçe veya istediğiniz dilde yazabilirsiniz',
+    modalCancel:'İptal',modalConfirm:'Ekle',modalPlaceholder:'مثلاً: يا رحمن',
+    dailyTitle:'Bugünkü Toplam',dailySub:'Gün sıfırlanınca temizlenir',wakeText:'Ekran Açık',
+  },
+  ar:{
+    appTitle:'السبحة الذكية',tapHint:'اضغط / اذكر الله',
+    autoLabel:'⚡ الوضع التلقائي',autoStart:'▶ ابدأ العد التلقائي',autoStop:'⏸ أوقف العد التلقائي',
+    undo:'تراجع',wake:'الشاشة نشطة',vibOn:'اهتزاز ✓',vibOff:'اهتزاز',reset:'إعادة',
+    total:'المجموع',rhythm:'متوسط الإيقاع',round:'جولة',
+    soundLabels:['ناعم','خشب','صامت'],
+    statusReady:'جاهز',statusReadyDesc:'اضغط الزر للبدء بالذكر',
+    statusLearning:'🧠 تعلّم الإيقاع...',statusLearningDesc:n=>`${n} ضغطة أخرى`,
+    statusReady2:'✓ تم تعلّم الإيقاع',statusReady2Desc:s=>`المتوسط ${s}ث`,
+    statusAuto:'⚡ العد التلقائي',statusAutoDesc:s=>`ذكر كل ${s} ثانية`,
+    toastComplete:'مَاشَاءَ الله — اكتملت الجولة! 🌙',
+    modalTitle:'إضافة ذكر جديد',modalHint:'يمكنك الكتابة بأي لغة',
+    modalCancel:'إلغاء',modalConfirm:'إضافة',modalPlaceholder:'مثل: يا رحمن',
+    dailyTitle:'إجمالي اليوم',dailySub:'يتجدد كل يوم',wakeText:'الشاشة نشطة',
+  },
+  en:{
+    appTitle:'Smart Dhikr Counter',tapHint:'TAP / REMEMBER ALLAH',
+    autoLabel:'⚡ Auto Mode',autoStart:'▶ Start Auto Count',autoStop:'⏸ Stop Auto Count',
+    undo:'Undo',wake:'Screen On',vibOn:'Vibrate ✓',vibOff:'Vibrate',reset:'Reset',
+    total:'Total',rhythm:'Avg. Rhythm',round:'Round',
+    soundLabels:['Soft','Wood','Silent'],
+    statusReady:'Ready',statusReadyDesc:'Tap the button to begin dhikr',
+    statusLearning:'🧠 Learning Rhythm...',statusLearningDesc:n=>`${n} more taps needed`,
+    statusReady2:'✓ Rhythm Learned',statusReady2Desc:s=>`Avg. ${s}s — auto mode ready`,
+    statusAuto:'⚡ Auto Counting',statusAutoDesc:s=>`One dhikr every ${s}s`,
+    toastComplete:'مَاشَاءَ الله — Round Complete! 🌙',
+    modalTitle:'Add New Dhikr',modalHint:'Write in Arabic, English or any language',
+    modalCancel:'Cancel',modalConfirm:'Add',modalPlaceholder:'e.g. يا رحمن',
+    dailyTitle:"Today's Total",dailySub:'Resets at midnight',wakeText:'Screen On',
+  }
+};
+
+const PRESETS = {
+  tr:['الله','سبحان الله','الحمد لله','الله أكبر','لا إله إلا الله','استغفر الله'],
+  ar:['الله','سبحان الله','الحمد لله','الله أكبر','لا إله إلا الله','أستغفر الله','يا رحمن','يا لطيف'],
+  en:['Allah','SubhanAllah','Alhamdulillah','Allahu Akbar','La ilaha illAllah','Astaghfirullah'],
+};
+
+// ─── STATE ────────────────────────────────────────────
+let lang='tr', count=0, total=0, target=99, rounds=1;
+let tapTimes=[], avgInterval=null, learningCount=10;
+let isAutoMode=false, autoTimer=null, speedMultiplier=1.0;
+let currentZikir='الله', soundType='soft', vibEnabled=true;
+let audioCtx=null, wakeLock=null, wakeEnabled=false;
+let customZikirList=JSON.parse(localStorage.getItem('customZikirList')||'[]');
+
+// Daily stat
+function getTodayKey(){return'daily_'+new Date().toISOString().slice(0,10);}
+function getDailyStat(){return parseInt(localStorage.getItem(getTodayKey())||'0');}
+function addDailyStat(n){const k=getTodayKey();localStorage.setItem(k,getDailyStat()+n);updateDailyDisplay();}
+function updateDailyDisplay(){document.getElementById('dailyNum').textContent=getDailyStat();}
+
+// ─── INIT ─────────────────────────────────────────────
+function init(){applyLang();renderZikirSelector();updateStatus();updateDailyDisplay();}
+
+// ─── LANGUAGE ─────────────────────────────────────────
+function setLang(l,btn){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyLang();renderZikirSelector();updateStatus();
+}
+function applyLang(){
+  const t=T[lang];
+  document.getElementById('appTitle').textContent=t.appTitle;
+  document.getElementById('tapHint').textContent=t.tapHint;
+  document.getElementById('autoLabel').textContent=t.autoLabel;
+  document.getElementById('autoToggle').textContent=isAutoMode?t.autoStop:t.autoStart;
+  document.getElementById('lblUndo').textContent=t.undo;
+  document.getElementById('lblWake').textContent=t.wake;
+  document.getElementById('lblVib').textContent=vibEnabled?t.vibOn:t.vibOff;
+  document.getElementById('lblReset').textContent=t.reset;
+  document.getElementById('lblTotal').textContent=t.total;
+  document.getElementById('lblRhythm').textContent=t.rhythm;
+  document.getElementById('lblRound').textContent=t.round;
+  document.getElementById('lblDailyTitle').textContent=t.dailyTitle;
+  document.getElementById('lblDailySub').textContent=t.dailySub;
+  document.getElementById('wakeText').textContent=t.wakeText;
+  document.getElementById('modalTitle').textContent=t.modalTitle;
+  document.getElementById('modalHint').textContent=t.modalHint;
+  document.getElementById('modalCancel').textContent=t.modalCancel;
+  document.getElementById('modalConfirm').textContent=t.modalConfirm;
+  document.getElementById('modalInput').placeholder=t.modalPlaceholder;
+  // sound labels
+  t.soundLabels.forEach((l,i)=>document.getElementById('sLbl'+i).textContent=l);
+}
+
+// ─── ZIKIR ────────────────────────────────────────────
+function renderZikirSelector(){
+  const container=document.getElementById('zikirSelector');
+  container.innerHTML='';
+  const presets=PRESETS[lang];
+  const all=[...presets,...customZikirList];
+  all.forEach((z,idx)=>{
+    const btn=document.createElement('button');
+    const isCustom=idx>=presets.length;
+    btn.className='zikir-btn'+(z===currentZikir?' active':'')+(isCustom?' custom-item':'');
+    btn.innerHTML=z;
+    if(isCustom){const x=document.createElement('span');x.className='del-x';x.textContent='✕';x.onclick=e=>{e.stopPropagation();deleteCustomZikir(z);};btn.appendChild(x);}
+    btn.onclick=()=>selectZikir(btn,z);
+    container.appendChild(btn);
+  });
+  const addBtn=document.createElement('button');
+  addBtn.className='add-zikir-btn';addBtn.textContent='+';addBtn.onclick=openModal;
+  container.appendChild(addBtn);
+}
+function selectZikir(btn,zikir){
+  document.querySelectorAll('.zikir-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');currentZikir=zikir;
+  document.getElementById('zikirLabel').textContent=zikir;
+}
+
+// ─── CUSTOM ZIKIR ─────────────────────────────────────
+function openModal(){document.getElementById('modalOverlay').classList.add('open');document.getElementById('modalInput').value='';setTimeout(()=>document.getElementById('modalInput').focus(),200);}
+function closeModalDirect(){document.getElementById('modalOverlay').classList.remove('open');}
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalDirect();}
+function addCustomZikir(){
+  const val=document.getElementById('modalInput').value.trim();
+  if(!val)return;
+  if(!customZikirList.includes(val)){customZikirList.push(val);localStorage.setItem('customZikirList',JSON.stringify(customZikirList));}
+  closeModalDirect();renderZikirSelector();
+  document.querySelectorAll('.zikir-btn').forEach(b=>{if(b.textContent.replace('✕','').trim()===val)selectZikir(b,val);});
+}
+function deleteCustomZikir(z){
+  customZikirList=customZikirList.filter(c=>c!==z);
+  localStorage.setItem('customZikirList',JSON.stringify(customZikirList));
+  if(currentZikir===z){currentZikir=PRESETS[lang][0];document.getElementById('zikirLabel').textContent=currentZikir;}
+  renderZikirSelector();
+}
+
+// ─── AUDIO ────────────────────────────────────────────
+function getAudioCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playTick(){
+  if(soundType==='silent')return;
+  try{
+    const ctx=getAudioCtx();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    if(soundType==='soft'){o.type='sine';o.frequency.value=880+Math.random()*40;g.gain.setValueAtTime(0.12,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.08);}
+    else if(soundType==='wood'){o.type='triangle';o.frequency.value=220+Math.random()*20;g.gain.setValueAtTime(0.2,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.05);}
+    o.start();o.stop(ctx.currentTime+0.1);
+  }catch(e){}
+}
+function playComplete(){
+  if(soundType==='silent')return;
+  try{
+    const ctx=getAudioCtx();
+    [523,659,784,1047].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.frequency.value=f;
+      g.gain.setValueAtTime(0,ctx.currentTime+i*0.12);
+      g.gain.linearRampToValueAtTime(0.12,ctx.currentTime+i*0.12+0.05);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.12+0.4);
+      o.start(ctx.currentTime+i*0.12);o.stop(ctx.currentTime+i*0.12+0.4);
+    });
+  }catch(e){}
+}
+
+// ─── VIBRATION ────────────────────────────────────────
+function vibrate(pattern){if(vibEnabled&&navigator.vibrate)navigator.vibrate(pattern);}
+function toggleVibration(){
+  vibEnabled=!vibEnabled;
+  document.getElementById('vibIcon').textContent=vibEnabled?'📳':'📴';
+  document.getElementById('lblVib').textContent=vibEnabled?T[lang].vibOn:T[lang].vibOff;
+  if(vibEnabled)vibrate(30);
+}
+
+// ─── WAKE LOCK ────────────────────────────────────────
+async function toggleWakeLock(){
+  if(!('wakeLock' in navigator)){showToast('⚠️ Tarayıcı desteklemiyor');return;}
+  if(wakeEnabled){
+    if(wakeLock){wakeLock.release();wakeLock=null;}
+    wakeEnabled=false;
+    document.getElementById('wakeBtn').classList.remove('on');
+    document.getElementById('wakeBadge').classList.remove('on');
+  }else{
+    try{
+      wakeLock=await navigator.wakeLock.request('screen');
+      wakeEnabled=true;
+      document.getElementById('wakeBtn').classList.add('on');
+      document.getElementById('wakeBadge').classList.add('on');
+      wakeLock.addEventListener('release',()=>{wakeEnabled=false;document.getElementById('wakeBtn').classList.remove('on');document.getElementById('wakeBadge').classList.remove('on');});
+    }catch(e){showToast('⚠️ Ekran kilidi alınamadı');}
+  }
+}
+document.addEventListener('visibilitychange',async()=>{
+  if(document.visibilityState==='visible'&&wakeEnabled&&!wakeLock){
+    try{wakeLock=await navigator.wakeLock.request('screen');}catch(e){}
+  }
+});
+
+// ─── SOUND SELECTOR ───────────────────────────────────
+function setSound(btn,type){
+  document.querySelectorAll('.sound-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');soundType=type;
+  if(type!=='silent')playTick();
+}
+
+// ─── BURST ANIMATION ──────────────────────────────────
+function triggerBurst(){
+  const container=document.getElementById('burstContainer');
+  const ring=document.getElementById('ring').getBoundingClientRect();
+  const cx=ring.left+ring.width/2, cy=ring.top+ring.height/2;
+  const emojis=['⭐','✨','🌙','💛','🤍','🌟'];
+  for(let i=0;i<14;i++){
+    const p=document.createElement('div');
+    p.className='burst-particle';
+    const angle=(Math.PI*2/14)*i;
+    const dist=80+Math.random()*80;
+    const dx=Math.cos(angle)*dist, dy=Math.sin(angle)*dist;
+    const rot=(Math.random()*360)+'deg';
+    p.style.cssText=`left:${cx}px;top:${cy}px;--dx:${dx}px;--dy:${dy}px;--rot:${rot};`;
+    p.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    container.appendChild(p);
+    setTimeout(()=>p.remove(),1300);
+  }
+}
+
+// ─── TAP ──────────────────────────────────────────────
+function handleTap(e){
+  const btn=document.getElementById('tapBtn');
+  if(e&&e.clientX){
+    const r=btn.getBoundingClientRect();
+    btn.style.setProperty('--x',((e.clientX-r.left)/r.width*100)+'%');
+    btn.style.setProperty('--y',((e.clientY-r.top)/r.height*100)+'%');
+  }
+  vibrate(25);
+  const now=Date.now();tapTimes.push(now);
+  if(tapTimes.length>20)tapTimes.shift();
+  if(tapTimes.length>=2){
+    const ivs=[];for(let i=1;i<tapTimes.length;i++)ivs.push(tapTimes[i]-tapTimes[i-1]);
+    avgInterval=ivs.reduce((a,b)=>a+b)/ivs.length;
+    updateRhythmDots(ivs);
+    document.getElementById('rhythmStat').textContent=(avgInterval/1000).toFixed(1)+'s';
+  }
+  incrementCount();
+  if(tapTimes.length>=learningCount&&!isAutoMode)document.getElementById('autoControls').classList.add('visible');
+  updateStatus();
+}
+
+function incrementCount(){
+  count++;total++;
+  playTick();addDailyStat(1);
+  const numEl=document.getElementById('countNum'),ring=document.getElementById('ring');
+  numEl.textContent=count;
+  numEl.classList.remove('bump');void numEl.offsetWidth;numEl.classList.add('bump');
+  ring.classList.remove('pulse');void ring.offsetWidth;ring.classList.add('pulse');
+  ring.style.setProperty('--progress',Math.min((count/target)*100,100));
+  document.getElementById('totalStat').textContent=total;
+  document.getElementById('roundInfo').textContent=`${count} / ${target}`;
+  if(count>=target)onTargetReached();
+}
+
+function onTargetReached(){
+  playComplete();vibrate([60,40,60,40,120]);
+  triggerBurst();
+  rounds++;count=0;
+  document.getElementById('ring').style.setProperty('--progress',0);
+  document.getElementById('roundStat').textContent=rounds;
+  document.getElementById('roundInfo').textContent='';
+  showToast(T[lang].toastComplete);
+  if(isAutoMode)stopAuto();
+}
+
+function undoTap(){
+  if(count<=0)return;
+  count--;total=Math.max(0,total-1);tapTimes.pop();
+  // subtract from daily
+  const k=getTodayKey();localStorage.setItem(k,Math.max(0,getDailyStat()-1));updateDailyDisplay();
+  document.getElementById('countNum').textContent=count;
+  document.getElementById('totalStat').textContent=total;
+  document.getElementById('ring').style.setProperty('--progress',Math.min((count/target)*100,100));
+  document.getElementById('roundInfo').textContent=count>0?`${count} / ${target}`:'';
+  vibrate(15);
+}
+
+// ─── AUTO MODE ────────────────────────────────────────
+function toggleAuto(){isAutoMode?stopAuto():startAuto();}
+function startAuto(){
+  if(!avgInterval)return;isAutoMode=true;
+  const btn=document.getElementById('autoToggle');
+  btn.textContent=T[lang].autoStop;btn.classList.add('active');
+  scheduleAutoTick();updateStatus();
+}
+function stopAuto(){
+  isAutoMode=false;clearTimeout(autoTimer);
+  const btn=document.getElementById('autoToggle');
+  btn.textContent=T[lang].autoStart;btn.classList.remove('active');
+  updateStatus();
+}
+function scheduleAutoTick(){
+  if(!isAutoMode)return;
+  autoTimer=setTimeout(()=>{if(isAutoMode){handleTap(null);scheduleAutoTick();}},avgInterval/speedMultiplier);
+}
+function changeSpeed(d){
+  speedMultiplier=Math.max(0.3,Math.min(3.0,speedMultiplier+d));
+  document.getElementById('speedDisplay').textContent=speedMultiplier.toFixed(1)+'×';
+  if(isAutoMode){clearTimeout(autoTimer);scheduleAutoTick();}
+}
+
+// ─── STATUS ───────────────────────────────────────────
+function updateStatus(){
+  const icon=document.getElementById('statusIcon'),text=document.getElementById('statusText'),t=T[lang];
+  if(isAutoMode){icon.className='status-icon auto';text.innerHTML=`<strong>${t.statusAuto}</strong>${t.statusAutoDesc((avgInterval/speedMultiplier/1000).toFixed(1))}`;}
+  else if(tapTimes.length>0&&tapTimes.length<learningCount){icon.className='status-icon learning';text.innerHTML=`<strong>${t.statusLearning}</strong>${t.statusLearningDesc(learningCount-tapTimes.length)}`;}
+  else if(tapTimes.length>=learningCount){icon.className='status-icon ready';text.innerHTML=`<strong>${t.statusReady2}</strong>${t.statusReady2Desc((avgInterval/1000).toFixed(1))}`;}
+  else{icon.className='status-icon';text.innerHTML=`<strong>${t.statusReady}</strong>${t.statusReadyDesc}`;}
+}
+
+// ─── RHYTHM DOTS ──────────────────────────────────────
+function updateRhythmDots(ivs){
+  const dots=document.querySelectorAll('.r-dot'),recent=ivs.slice(-8),mx=Math.max(...recent);
+  dots.forEach((d,i)=>{
+    if(i<recent.length){const n=recent[i]/mx;d.style.height=Math.round(4+n*20)+'px';d.style.background=n>.8?'var(--gold)':n>.5?'var(--gold-dim)':'var(--green-light)';}
+    else{d.style.height='4px';d.style.background='var(--text-dim)';}
+  });
+}
+
+// ─── CONTROLS ─────────────────────────────────────────
+function setTarget(btn,t){
+  document.querySelectorAll('.target-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');target=t;
+  document.getElementById('ring').style.setProperty('--progress',Math.min((count/target)*100,100));
+  document.getElementById('roundInfo').textContent=count>0?`${count} / ${target}`:'';
+}
+function resetCounter(){
+  if(isAutoMode)stopAuto();
+  count=0;total=0;rounds=1;tapTimes=[];avgInterval=null;
+  document.getElementById('countNum').textContent='0';
+  document.getElementById('totalStat').textContent='0';
+  document.getElementById('roundStat').textContent='1';
+  document.getElementById('rhythmStat').textContent='—';
+  document.getElementById('roundInfo').textContent='';
+  document.getElementById('ring').style.setProperty('--progress',0);
+  document.getElementById('autoControls').classList.remove('visible');
+  document.querySelectorAll('.r-dot').forEach(d=>{d.style.height='4px';d.style.background='var(--text-dim)';});
+  updateStatus();vibrate(40);
+}
+
+// ─── TOAST ────────────────────────────────────────────
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+document.getElementById('modalInput').addEventListener('keydown',e=>{if(e.key==='Enter')addCustomZikir();});
+init();
+</script>
+</body>
+</html>
