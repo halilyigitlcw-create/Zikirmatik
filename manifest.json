@@ -1,0 +1,71 @@
+{
+  "name": "Zikirmatik — Akıllı Zikir Sayacı",
+  "short_name": "Zikirmatik",
+  "description": "Yapay zeka destekli akıllı zikir sayacı. Ritim öğrenir, otomatik sayar. Namaz vakitleri, Kıble, Esmaü'l-Hüsna ve daha fazlası.",
+  "start_url": "/Zikirmatik/",
+  "scope": "/Zikirmatik/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#f5ede0",
+  "theme_color": "#c9a84c",
+  "lang": "tr",
+  "dir": "ltr",
+  "id": "/Zikirmatik/",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["lifestyle", "utilities", "education"],
+  "shortcuts": [
+    {
+      "name": "Zikir Sayacı",
+      "short_name": "Sayaç",
+      "description": "Hızlıca zikir saymaya başla",
+      "url": "/Zikirmatik/",
+      "icons": [{"src": "icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Namaz Vakitleri",
+      "short_name": "Namaz",
+      "description": "Günün namaz vakitlerini gör",
+      "url": "/Zikirmatik/#namaz",
+      "icons": [{"src": "icon-192.png", "sizes": "192x192"}]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "com.zikirmatik.app"
+    }
+  ]
+}
